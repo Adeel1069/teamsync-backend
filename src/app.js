@@ -8,6 +8,7 @@ import projectRoutes from "./routes/projectRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import { errorHandler } from "./middlewares/error.js";
 import { FRONTEND_URL, NODE_ENV } from "./config/envConfig.js";
+import { swaggerSpec, swaggerUi } from "./config/swagger.js";
 
 const app = express();
 
@@ -43,6 +44,9 @@ const authLimiter = rateLimit({
   max: 5, // requests per window
   message: "Too many login attempts, please try again later",
 });
+
+// Swagger docs route
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use("/api/projects", projectRoutes); // Project routes

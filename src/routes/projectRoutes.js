@@ -38,6 +38,37 @@ router.post(
 );
 
 /**
+ * @swagger
+ * /api/projects:
+ *   get:
+ *     summary: Get all projects
+ *     description: Retrieve a list of all projects.
+ *     tags: [Projects]
+ *     responses:
+ *       200:
+ *         description: A list of projects
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: The project ID
+ *                   name:
+ *                     type: string
+ *                     description: The name of the project
+ *                   description:
+ *                     type: string
+ *                     description: The project description
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+/**
  * @route   GET /api/projects
  * @desc    Get all projects
  * @access  Private

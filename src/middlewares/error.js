@@ -13,6 +13,7 @@ export const errorHandler = (err, req, res, next) => {
   const response = {
     success: false,
     message: err.message || "Internal Server Error",
+    isOperational: err.isOperational || false,
     ...(NODE_ENV === "development" && { stack: err.stack }), // Include stack trace in development only
   };
 
