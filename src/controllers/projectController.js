@@ -1,7 +1,7 @@
 import Project from "../models/projectModel.js";
 import AppError from "../utils/AppError.js";
 
-// Create a new project
+/** Create a new project */
 export const createProject = async (req, res, next) => {
   try {
     const { name, description, startDate, endDate } = req.body;
@@ -18,7 +18,7 @@ export const createProject = async (req, res, next) => {
   }
 };
 
-// Get projects
+/** Get projects */
 export const getProjects = async (req, res, next) => {
   try {
     const projects = await Project.find();
@@ -28,7 +28,7 @@ export const getProjects = async (req, res, next) => {
   }
 };
 
-// Get a single project by ID
+/**  Get a single project by ID */
 export const getProjectById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -44,7 +44,7 @@ export const getProjectById = async (req, res, next) => {
   }
 };
 
-// Update a single project
+/**  Update a single project */
 export const updateProject = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -52,7 +52,7 @@ export const updateProject = async (req, res, next) => {
     const updatedProject = await Project.findByIdAndUpdate(
       id,
       { name, description, startDate, endDate, status },
-      { new: true } // return the updated document
+      { new: true },
     );
 
     if (!updatedProject) {
@@ -68,7 +68,7 @@ export const updateProject = async (req, res, next) => {
   }
 };
 
-// Delete a project by ID
+/** Delete a project by ID */
 export const deleteProject = async (req, res, next) => {
   try {
     const { id } = req.params;

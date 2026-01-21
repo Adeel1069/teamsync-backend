@@ -13,20 +13,78 @@ import {
   createProjectValidator,
   updateProjectValidator,
 } from "../validators/projectValidators.js";
+import auth from "../middlewares/auth.js";
+import { authorize } from "../middlewares/authorize.js";
 
 const router = express.Router();
 
-router.post("/", createProjectValidator, validate, createProject);
-router.get("/", getProjects);
+// ==========================================
+// Protected ROUTES
+// ==========================================
 
-router.get("/:id", validateProjectId, validate, getProjectById);
+/**
+ * @route   POST /api/projects
+ * @desc    Create a new project
+ * @access  Private
+ */
+
+router.post(
+  "/",
+  auth,
+  authorize("admin"),
+  createProjectValidator,
+  validate,
+  createProject,
+);
+
+/**
+ * @route   GET /api/projects
+ * @desc    Get all projects
+ * @access  Private
+ */
+router.get("/", auth, authorize("admin", "user"), getProjects);
+
+/**
+ * @route   GET /api/projects/:id
+ * @desc    Get project by id
+ * @access  Private
+ */
+router.get(
+  "/:id",
+  auth,
+  authorize("admin", "user"),
+  validateProjectId,
+  validate,
+  getProjectById,
+);
+
+/**
+ * @route   PUT /api/projects/:id
+ * @desc    Update a project by id
+ * @access  Private
+ */
 router.put(
   "/:id",
+  auth,
+  authorize("admin"),
   validateProjectId,
   updateProjectValidator,
   validate,
-  updateProject
+  updateProject,
 );
-router.delete("/:id", validateProjectId, validate, deleteProject);
+
+/**
+ * @route   DELETE /api/projects/:id
+ * @desc    Delete a project by id
+ * @access  Private
+ */
+router.delete(
+  "/:id",
+  auth,
+  authorize("admin"),
+  validateProjectId,
+  validate,
+  deleteProject,
+);
 
 export default router;
