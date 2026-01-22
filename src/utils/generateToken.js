@@ -10,13 +10,13 @@ import {
 
 export const generateAccessToken = (userId, role) => {
   return jwt.sign({ userId, role }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRE || "15m",
+    expiresIn: JWT_EXPIRE,
   });
 };
 
 export const generateRefreshToken = (userId) => {
   return jwt.sign({ userId }, JWT_REFRESH_SECRET, {
-    expiresIn: JWT_REFRESH_EXPIRE || "7d",
+    expiresIn: JWT_REFRESH_EXPIRE,
   });
 };
 

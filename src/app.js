@@ -40,8 +40,8 @@ if (NODE_ENV === "development") {
 
 // Rate limiting
 const authLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 5, // requests per window
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // requests per window
   message: "Too many login attempts, please try again later",
 });
 

@@ -5,7 +5,7 @@ export const getAccessTokenCookieOptions = () => {
     httpOnly: true,
     secure: NODE_ENV === "production", // HTTPS only in production
     sameSite: "strict",
-    maxAge: 5 * 60 * 1000, // 5 minutes
+    maxAge: 7 * 24 * 60 * 60 * 1000, // after this time, access token will be removed automatically from cookie
     path: "/",
   };
 };

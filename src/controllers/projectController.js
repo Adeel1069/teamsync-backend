@@ -22,7 +22,7 @@ export const createProject = async (req, res, next) => {
 export const getProjects = async (req, res, next) => {
   try {
     const projects = await Project.find();
-    res.status(200).json({ message: "Success", projects });
+    res.status(200).json({ success: true, message: "Success", projects });
   } catch (error) {
     next(error);
   }
