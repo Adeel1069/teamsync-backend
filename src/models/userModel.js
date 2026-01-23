@@ -1,24 +1,51 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import { ROLES } from "../constants/users.js";
 
 const userSchema = new mongoose.Schema(
   {
-    username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      index: true, // TODO: Check if this index is necessary in the presence of unique constraint or compound index below
+    },
     password: { type: String, required: true, select: false },
-    role: { type: String, default: ROLES.USER, enum: Object.values(ROLES) },
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
+    profileImage: {
+      type: String, // URL or path to the image
+      default: null,
+    },
+    isActive: { type: Boolean, default: true },
+    lastLoginAt: { type: Date, default: null },
+    //Soft delete
+    deletedAt: {
+      type: Date,
+      default: null,
+      index: true, // TODO: Check if this index is necessary in the presence of compound index below
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+// Virtual to get full name
+userSchema.virtual("fullName").get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
+
+// Compound index for active users
+// TODO: Remove this comment after testing the index
+// Query to verify indexing is working or not db.users.find({ email: "test@test.com", deletedAt: null }).explain("executionStats")
+// if totalDocsExamined is 1, its mean your index is working perfectly!
+userSchema.index({ email: 1, deletedAt: 1 });
 
 // Pre hook to hash password before saving the user
 userSchema.pre("save", async function () {
-  // If the password isn't changed, just return - no action needed
-  if (!this.isModified("password")) return;
-
-  // Hash the password
+  if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
 // Method to compare password during login
