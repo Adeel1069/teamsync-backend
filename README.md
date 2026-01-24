@@ -12,7 +12,8 @@ A production-ready RESTful API backend for a Project Management System built wit
 - **Authentication & Authorization**
   - JWT-based authentication with access and refresh tokens
   - HTTP-only cookie storage for enhanced security
-  - Role-based access control (Admin, User, Owner, Member, Viewer)
+  - Two-tier permission system (Platform-level + Workspace-level)
+  - Workspace-based role management (Owner, Admin, Member, Viewer)
   - Secure password hashing with bcryptjs
   - Token refresh mechanism with rotation
 
@@ -157,8 +158,8 @@ The server will start on `http://localhost:5000`
 
 1. **Access Token**
    - Stored in HTTP-only cookie
-   - Short-lived (1 minute)
-   - Contains: `{userId, role}`
+   - Short-lived (1 day in cookie, but can be configured shorter)
+   - Contains: `{userId}`
    - Used for API authentication
 
 2. **Refresh Token**
@@ -168,13 +169,58 @@ The server will start on `http://localhost:5000`
    - Used only for token refresh
    - Path restricted to `/api/auth/refresh`
 
-### Authorization Roles
+### Authorization & Permission System
 
-- **user** - Regular user with basic permissions
-- **admin** - Administrator with full CRUD access
-- **owner** - Workspace owner (premium features)
-- **member** - Workspace member
-- **viewer** - Read-only access
+This system uses a **two-tier permission model** similar to Slack, Discord, and Notion:
+
+#### **Platform Level** (User Account)
+
+All registered users are equal at the platform level. There is only one special platform role:
+
+- **Super Admin** (`isSuperAdmin: true`)
+  - Single platform administrator (created via seed script)
+  - Can view and access all workspaces
+  - Manages platform-level operations and support
+  - Regular users never interact with super-admin features
+
+#### **Workspace Level** (Team Permissions)
+
+When users create or join workspaces, they are assigned workspace-specific roles:
+
+- **Owner**
+  - User who created the workspace
+  - Full control over workspace settings
+  - Can manage all members and their roles
+  - Can create and manage projects
+  - Cannot be removed from the workspace
+
+- **Admin**
+  - Workspace administrator
+  - Can manage workspace settings (except deletion)
+  - Can invite/remove members and assign roles
+  - Can create and manage projects
+  - Full access to all workspace resources
+
+- **Member**
+  - Regular workspace member
+  - Can create and manage tasks
+  - Can comment on tasks and projects
+  - Cannot create projects or manage workspace
+  - Read/write access to assigned work
+
+- **Viewer**
+  - Read-only access
+  - Can view projects and tasks
+  - Can comment on tasks
+  - Cannot create or modify resources
+  - Ideal for stakeholders and clients |
+
+### Workspace Creation
+
+- **Any authenticated user** can create workspaces
+- Upon creation, the user automatically becomes the **Owner** of that workspace
+- Users can create multiple workspaces and be members of many workspaces
+- Each workspace operates independently with its own team and permissions
 
 ## Error Handling
 

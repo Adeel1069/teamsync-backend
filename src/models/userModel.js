@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
       type: String, // URL or path to the image
       default: null,
     },
+    isSuperAdmin: { type: Boolean, default: false, select: false },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date, default: null },
     //Soft delete
@@ -40,10 +41,9 @@ userSchema.virtual("fullName").get(function () {
 userSchema.index({ email: 1, deletedAt: 1 });
 
 // Pre hook to hash password before saving the user
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
 
 // Method to compare password during login
