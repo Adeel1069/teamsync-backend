@@ -12,7 +12,7 @@ import {
 
 /** Register a new user */
 export const registerUser = async (req, res, next) => {
-  const { username, email, password, role } = req.body;
+  const { username, email, password } = req.body;
 
   try {
     const existingUser = await User.findOne({ email });
@@ -24,7 +24,6 @@ export const registerUser = async (req, res, next) => {
       username,
       email,
       password,
-      role,
     });
 
     await user.save();
@@ -102,17 +101,19 @@ export const refreshAccessToken = async (req, res, next) => {
     });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      next(new AppError("Invalid refresh token", 401));
+      return next(new AppError("Invalid refresh token", 401));
     }
     if (error.name === "TokenExpiredError") {
-      next(new AppError("Refresh token expired. Please login again", 401));
+      return next(
+        new AppError("Refresh token expired. Please login again", 401),
+      );
     }
     next(error);
   }
 };
 
 /** Logout User */
-export const logout = async (req, res, next) => {
+export const logout = (req, res, next) => {
   try {
     // Clear cookies
     res.clearCookie("accessToken", { path: "/" });

@@ -97,7 +97,7 @@ router.post("/login", loginValidation, loginUser);
 /**
  * @route   POST /api/auth/refresh
  * @desc    Refresh access token using refresh token and rotate refresh token
- * @access  Private
+ * @access  Private (verified by refresh token in controller)
  */
 router.post("/refresh", refreshAccessToken);
 
@@ -106,7 +106,7 @@ router.post("/refresh", refreshAccessToken);
  * @desc    Clear authentication cookies
  * @access  Private
  */
-router.post("/logout", logout);
+router.post("/logout", auth, logout);
 
 /**
  * @swagger

@@ -1,7 +1,7 @@
 <div align="center">
   <img src="assets/teamSync.png" alt="TeamSync Logo" width="200"/>
 
-# TeamSync
+# Project Management System
 
 A production-ready RESTful API backend for a Project Management System built with Node.js, Express, and MongoDB. Features JWT authentication with refresh tokens, role-based authorization, and comprehensive project/task management capabilities.
 
@@ -62,47 +62,34 @@ TeamSync-Backend/
 │   │   ├── cookieConfig.js       # Cookie configuration
 │   │   └── swagger.js            # Swagger documentation setup
 │   │
-│   ├── constants/
-│   │   ├── index.js              # Application constants
-│   │   ├── projects.js           # Project status/priority enums
-│   │   └── users.js              # User roles
+│   ├── constants/                # Application constants
+│   │   ├── index.js
 │   │
 │   ├── models/                   # MongoDB schemas
 │   │   ├── userModel.js
-│   │   ├── workspaceModel.js
-│   │   ├── projectModel.js
-│   │   ├── taskSchema.js
-│   │   ├── workspaceMemberSchema.js
-│   │   ├── commentSchema.js
-│   │   ├── attachmentSchema.js
-│   │   ├── activityLogSchema.js
-│   │   └── LabelSchema.js
 │   │
-│   ├── routes/
-│   │   ├── authRoutes.js         # Authentication endpoints
-│   │   └── projectRoutes.js      # Project management endpoints
+│   ├── routes/                   # Endpoints
+│   │   ├── authRoutes.js
 │   │
-│   ├── controllers/
-│   │   ├── authController.js     # Auth business logic
-│   │   └── projectController.js  # Project CRUD logic
+│   ├── controllers/              # Controller - Business logic
+│   │   ├── authController.js
 │   │
-│   ├── middlewares/
+│   ├── middlewares/              # Middlewares
 │   │   ├── auth.js               # JWT verification
 │   │   ├── authorize.js          # Role-based authorization
 │   │   ├── error.js              # Error handler
 │   │   └── validate.js           # Validation error handler
 │   │
-│   ├── validators/
-│   │   ├── authValidators.js     # Auth input validation
-│   │   └── projectValidators.js  # Project input validation
+│   ├── validators/               # Input validations
+│   │   ├── authValidators.js
 │   │
 │   └── utils/
 │       ├── generateToken.js      # JWT utilities
 │       ├── AppError.js           # Custom error class
-│       └── responseWrapper.js    # Response formatters
 │
 ├── package.json
 ├── .env                          # Environment variables (not in repo)
+├── .env.example                  # Example Environment variables (in repo)
 ├── .gitignore
 └── README.md
 ```
@@ -120,8 +107,8 @@ TeamSync-Backend/
 1. Clone the repository
 
 ```bash
-git clone git@github.com:Adeel1069/pms-express-backend.git
-cd pms-express-backend
+git https://github.com/Adeel1069/teamsync-backend.git
+cd teamsync-backend
 ```
 
 2. Install dependencies
@@ -136,19 +123,7 @@ npm install
 cp .env.example .env
 ```
 
-4. Configure environment variables (see [Environment Variables](#environment-variables))
-
-5. Start the development server
-
-```bash
-npm start
-```
-
-The server will start on `http://localhost:5000`
-
-## Environment Variables
-
-Create a `.env` file in the root directory with the following variables:
+4. Configure environment variables
 
 ```env
 # Server Configuration
@@ -167,6 +142,14 @@ JWT_REFRESH_EXPIRE=7d
 # CORS
 FRONTEND_URL=http://localhost:5173
 ```
+
+5. Start the development server
+
+```bash
+npm start
+```
+
+The server will start on `http://localhost:5000`
 
 ## Authentication Flow
 

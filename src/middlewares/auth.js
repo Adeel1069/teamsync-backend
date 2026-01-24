@@ -21,10 +21,10 @@ const auth = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      next(new AppError("Invalid token", 401));
+      return next(new AppError("Invalid token", 401));
     }
     if (error.name === "TokenExpiredError") {
-      next(new AppError("Token expired. Please login again", 401));
+      return next(new AppError("Token expired. Please login again", 401));
     }
     next(error);
   }

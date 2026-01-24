@@ -40,7 +40,7 @@ userSchema.virtual("fullName").get(function () {
 userSchema.index({ email: 1, deletedAt: 1 });
 
 // Pre hook to hash password before saving the user
-userSchema.pre("save", async function () {
+userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
