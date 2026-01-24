@@ -1,8 +1,10 @@
+import { StatusCodes } from "http-status-codes";
+
 export const sendSuccessResponse = (
   res,
   data,
   message = "Success",
-  statusCode = 200,
+  statusCode = StatusCodes.OK,
 ) => {
   return res.status(statusCode).json({
     success: true,
@@ -14,7 +16,7 @@ export const sendSuccessResponse = (
 export const sendErrorResponse = (
   res,
   message,
-  statusCode = 400,
+  statusCode = StatusCodes.BAD_REQUEST,
   errors = null,
 ) => {
   return res.status(statusCode).json({

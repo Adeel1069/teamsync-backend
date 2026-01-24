@@ -1,8 +1,13 @@
+import { StatusCodes } from "http-status-codes";
+
 export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
       return next(
-        new AppError("Unauthorized. Please authenticate first.", 401),
+        new AppError(
+          "Unauthorized. Please authenticate first.",
+          StatusCodes.UNAUTHORIZED,
+        ),
       );
     }
 
@@ -15,7 +20,12 @@ export const authorize = (...roles) => {
 
     // Check if user's role is in the allowed roles
     if (!allowedRoles.includes(req.user.role)) {
-      return next(new AppError("Forbidden. Insufficient permissions.", 403));
+      return next(
+        new AppError(
+          "Forbidden. Insufficient permissions.",
+          StatusCodes.FORBIDDEN,
+        ),
+      );
     }
 
     next();

@@ -5,9 +5,9 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Project Management System API",
+      title: "TeamSync Backend API",
       version: "1.0.0",
-      description: "API documentation for the Project Management System",
+      description: "API documentation for the TeamSync Backend",
     },
     servers: [
       {

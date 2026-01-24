@@ -1,3 +1,4 @@
+import { StatusCodes } from "http-status-codes";
 import AppError from "../utils/AppError.js";
 import { verifyAccessToken } from "../utils/generateToken.js";
 
@@ -8,7 +9,10 @@ const auth = async (req, res, next) => {
     //const token =  req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
-      throw new AppError("Access denied. No token provided....", 403);
+      throw new AppError(
+        "Access denied. No token provided....",
+        StatusCodes.UNAUTHORIZED,
+      );
     }
 
     // 2. Verify token & Decode
@@ -21,10 +25,15 @@ const auth = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return next(new AppError("Invalid token", 401));
+      return next(new AppError("Invalid token", StatusCodes.UNAUTHORIZED));
     }
     if (error.name === "TokenExpiredError") {
-      return next(new AppError("Token expired. Please login again", 401));
+      return next(
+        new AppError(
+          "Token expired. Please login again",
+          StatusCodes.UNAUTHORIZED,
+        ),
+      );
     }
     next(error);
   }

@@ -5,10 +5,11 @@
  * which will be caught by this centralized error handler.
  */
 
+import { StatusCodes } from "http-status-codes";
 import { NODE_ENV } from "../config/envConfig.js";
 
 export const errorHandler = (err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
 
   const response = {
     success: false,
