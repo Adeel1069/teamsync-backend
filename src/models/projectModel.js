@@ -7,7 +7,6 @@ const projectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Workspace",
       required: true,
-      index: true,
     },
     name: {
       type: String,
@@ -36,7 +35,6 @@ const projectSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(PROJECT_STATUSES),
       default: PROJECT_STATUSES.ACTIVE,
-      index: true,
     },
     startDate: {
       type: Date,
@@ -49,7 +47,6 @@ const projectSchema = new mongoose.Schema(
     deletedAt: {
       type: Date,
       default: null,
-      index: true,
     },
   },
   {

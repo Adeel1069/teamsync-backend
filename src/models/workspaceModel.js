@@ -13,7 +13,6 @@ const workspaceSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
       validate: {
         validator: function (v) {
           // Only lowercase letters, numbers, and hyphens

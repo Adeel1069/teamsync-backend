@@ -1,15 +1,24 @@
 {
-  "name": "pms-express",
+  "name": "team-sync-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A production-ready RESTful API backend for a Project Management System built with Node.js, Express, and MongoDB. Features JWT authentication with refresh tokens, role-based authorization, and comprehensive project/task management capabilities.",
+  "main": "server.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "project-management",
+    "task-management",
+    "rest-api",
+    "express",
+    "mongodb",
+    "jwt-authentication",
+    "nodejs",
+    "backend"
+  ],
+  "author": "Hafiz Muhammad Adeel <hafizadeel493@gmail.com> (https://github.com/Adeel1069)",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",

@@ -7,7 +7,6 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
       required: true,
-      index: true,
     },
     // Auto-increment per project: PROJ-1, PROJ-2, etc.
     // Combined with project key to form unique identifier
@@ -29,7 +28,6 @@ const taskSchema = new mongoose.Schema(
       enum: Object.values(TASK_STATUSES),
       default: TASK_STATUSES.TODO,
       required: true,
-      index: true,
     },
     priority: {
       type: String,
@@ -42,7 +40,6 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Task",
       default: null,
-      index: true,
     },
     // Reporter/Creator
     reporter: {
@@ -56,7 +53,6 @@ const taskSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        index: true,
       },
     ],
     // Labels/Tags for categorization
@@ -84,7 +80,6 @@ const taskSchema = new mongoose.Schema(
     deletedAt: {
       type: Date,
       default: null,
-      index: true,
     },
   },
   {

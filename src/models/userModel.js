@@ -9,7 +9,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true, // TODO: Check if this index is necessary in the presence of unique constraint or compound index below
     },
     password: { type: String, required: true, select: false },
     firstName: { type: String, required: true, trim: true },
@@ -24,7 +23,6 @@ const userSchema = new mongoose.Schema(
     deletedAt: {
       type: Date,
       default: null,
-      index: true, // TODO: Check if this index is necessary in the presence of compound index below
     },
   },
   { timestamps: true },

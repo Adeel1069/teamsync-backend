@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="teamSync.png" alt="TeamSync Logo" width="200"/>
+  <img src="assets/teamSync.png" alt="TeamSync Logo" width="200"/>
 
-# PMS Express Backend
+# TeamSync
 
 A production-ready RESTful API backend for a Project Management System built with Node.js, Express, and MongoDB. Features JWT authentication with refresh tokens, role-based authorization, and comprehensive project/task management capabilities.
 
@@ -51,7 +51,7 @@ A production-ready RESTful API backend for a Project Management System built wit
 ## Project Structure
 
 ```
-PMS-Express-Backend/
+TeamSync-Backend/
 ├── server.js                     # Application entry point
 ├── src/
 │   ├── app.js                    # Express app configuration
