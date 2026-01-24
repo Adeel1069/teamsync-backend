@@ -4,8 +4,6 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
-import projectRoutes from "./routes/projectRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
 import { errorHandler } from "./middlewares/error.js";
 import { FRONTEND_URL, NODE_ENV } from "./config/envConfig.js";
 import { swaggerSpec, swaggerUi } from "./config/swagger.js";
@@ -46,11 +44,9 @@ const authLimiter = rateLimit({
 });
 
 // Swagger docs route
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
-app.use("/api/projects", projectRoutes); // Project routes
-app.use("/api/auth/", authLimiter, authRoutes); // Auth routes
 
 // Health check
 app.get("/health", (req, res) => {
