@@ -5,6 +5,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
 import authRoutes from "./routes/authRoutes.js";
+import workspaceRoutes from "./routes/workspaceRoutes.js";
 import { errorHandler } from "./middlewares/error.js";
 import { FRONTEND_URL, NODE_ENV } from "./config/envConfig.js";
 import { swaggerSpec, swaggerUi } from "./config/swagger.js";
@@ -48,8 +49,15 @@ const authLimiter = rateLimit({
 // Swagger docs route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Swagger JSON endpoint (for Postman import)
+app.get("/api-docs-json", (_req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
+
 // Routes
 app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/workspaces", workspaceRoutes);
 
 // Health check
 app.get("/health", (req, res) => {

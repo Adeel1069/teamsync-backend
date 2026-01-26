@@ -9,7 +9,6 @@ const workspaceSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      required: true,
       unique: true,
       lowercase: true,
       trim: true,
@@ -65,12 +64,11 @@ function generateSlugFromName(name) {
     .replace(/^-+|-+$/g, "");
 }
 
-// Pre-save hook: Auto-generate slug from name if not provided
-workspaceSchema.pre("save", function (next) {
+// Pre-save hook: Auto-generate unique slug from name if not provided
+workspaceSchema.pre("save", async function () {
   if (this.isNew && !this.slug) {
-    this.slug = generateSlugFromName(this.name);
+    this.slug = await this.constructor.generateUniqueSlug(this.name);
   }
-  next();
 });
 
 // Static method to find available slug (with suffix if collision)

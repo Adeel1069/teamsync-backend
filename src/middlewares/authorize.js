@@ -1,3 +1,4 @@
+// TODO: Remove this file as it is not needed anymore
 import { StatusCodes } from "http-status-codes";
 
 export const authorize = (...roles) => {
