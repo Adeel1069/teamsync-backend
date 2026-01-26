@@ -1,12 +1,13 @@
 import { StatusCodes } from "http-status-codes";
 import Workspace from "../models/workspaceModel.js";
-import WorkspaceMember from "../models/workspaceMemberSchema.js";
+import WorkspaceMember from "../models/workspaceMemberModel.js";
 import Label from "../models/labelModel.js";
 import Project from "../models/projectModel.js";
 import Task from "../models/taskSchema.js";
 import ActivityLog from "../models/activityLogModel.js";
 import Comment from "../models/commentModel.js";
 import Attachment from "../models/attachmentModel.js";
+import User from "../models/userModel.js";
 import AppError from "../utils/AppError.js";
 import {
   WORKSPACE_ROLES,
@@ -308,6 +309,330 @@ export const deleteWorkspace = async (req, res, next) => {
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Workspace and all related data deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Invite a member to the workspace
+ */
+export const inviteMember = async (req, res, next) => {
+  const { email, role } = req.body;
+  const inviterId = req.userId;
+
+  try {
+    // req.workspace is already loaded by checkWorkspaceMembership middleware
+    const workspace = req.workspace;
+
+    // Find user by email
+    const user = await User.findOne({ email, deletedAt: null });
+
+    if (!user) {
+      throw new AppError(
+        "User with this email does not exist",
+        StatusCodes.NOT_FOUND,
+      );
+    }
+
+    // Check if user is already a member of this workspace
+    const existingMembership = await WorkspaceMember.findOne({
+      workspace: workspace._id,
+      user: user._id,
+      deletedAt: null,
+    });
+
+    if (existingMembership) {
+      throw new AppError(
+        "User is already a member of this workspace",
+        StatusCodes.CONFLICT,
+      );
+    }
+
+    // Prevent inviting as owner role
+    if (role === WORKSPACE_ROLES.OWNER) {
+      throw new AppError(
+        "Cannot invite user as owner. A workspace can only have one owner",
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    // Create new workspace membership
+    const membership = new WorkspaceMember({
+      workspace: workspace._id,
+      user: user._id,
+      role: role || WORKSPACE_ROLES.MEMBER,
+      invitedBy: inviterId,
+    });
+
+    await membership.save();
+
+    // Populate user details for response
+    await membership.populate("user", "firstName lastName email profileImage");
+    await membership.populate("invitedBy", "firstName lastName email");
+
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: "Member invited successfully",
+      member: {
+        id: membership._id,
+        user: {
+          id: membership.user._id,
+          firstName: membership.user.firstName,
+          lastName: membership.user.lastName,
+          email: membership.user.email,
+          profileImage: membership.user.profileImage,
+        },
+        role: membership.role,
+        invitedBy: {
+          id: membership.invitedBy._id,
+          firstName: membership.invitedBy.firstName,
+          lastName: membership.invitedBy.lastName,
+          email: membership.invitedBy.email,
+        },
+        joinedAt: membership.joinedAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get all members of a workspace (Members only)
+ */
+export const getWorkspaceMembers = async (req, res, next) => {
+  try {
+    // req.workspace is already loaded by checkWorkspaceMembership middleware
+    const workspace = req.workspace;
+
+    // Find all members of this workspace
+    const memberships = await WorkspaceMember.find({
+      workspace: workspace._id,
+      deletedAt: null,
+    })
+      .populate("user", "firstName lastName email profileImage")
+      .populate("invitedBy", "firstName lastName email")
+      .sort({ createdAt: 1 });
+
+    const members = memberships.map((membership) => ({
+      id: membership._id,
+      user: {
+        id: membership.user._id,
+        firstName: membership.user.firstName,
+        lastName: membership.user.lastName,
+        email: membership.user.email,
+        profileImage: membership.user.profileImage,
+      },
+      role: membership.role,
+      invitedBy: membership.invitedBy
+        ? {
+            id: membership.invitedBy._id,
+            firstName: membership.invitedBy.firstName,
+            lastName: membership.invitedBy.lastName,
+            email: membership.invitedBy.email,
+          }
+        : null,
+      joinedAt: membership.joinedAt,
+    }));
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      count: members.length,
+      members,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update member role (Owner & Admin only)
+ * @route PATCH /api/workspaces/:slug/members/:memberId
+ * @access Private (Owner & Admin only)
+ */
+export const updateMemberRole = async (req, res, next) => {
+  try {
+    const { memberId } = req.params;
+    const { role } = req.body;
+    // Following data already loaded by checkWorkspaceMembership middleware
+    const currentUserId = req.userId;
+    const currentUserRole = req.workspaceRole;
+    const workspace = req.workspace;
+
+    // Find the membership to update
+    const membership = await WorkspaceMember.findOne({
+      _id: memberId,
+      workspace: workspace._id,
+      deletedAt: null,
+    }).populate("user", "firstName lastName email profileImage");
+
+    if (!membership) {
+      throw new AppError("Member not found", StatusCodes.NOT_FOUND);
+    }
+
+    // Cannot change owner role
+    if (membership.role === WORKSPACE_ROLES.OWNER) {
+      throw new AppError(
+        "Cannot change the role of workspace owner",
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    // Cannot update to owner role
+    if (role === WORKSPACE_ROLES.OWNER) {
+      throw new AppError(
+        "Cannot promote member to owner role",
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    // Prevent user from changing their own role
+    if (membership.user._id.toString() === currentUserId) {
+      throw new AppError(
+        "Cannot change your own role",
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    // Admin can only update members and viewers, not other admins (unless they're owner)
+    if (
+      currentUserRole === WORKSPACE_ROLES.ADMIN &&
+      membership.role === WORKSPACE_ROLES.ADMIN
+    ) {
+      throw new AppError(
+        "Only workspace owner can change admin roles",
+        StatusCodes.FORBIDDEN,
+      );
+    }
+
+    // Update the role
+    membership.role = role;
+    await membership.save();
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Member role updated successfully",
+      member: {
+        id: membership._id,
+        user: {
+          id: membership.user._id,
+          firstName: membership.user.firstName,
+          lastName: membership.user.lastName,
+          email: membership.user.email,
+          profileImage: membership.user.profileImage,
+        },
+        role: membership.role,
+        joinedAt: membership.joinedAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Remove member from workspace (Owner & Admin only)
+ */
+export const removeMember = async (req, res, next) => {
+  try {
+    const { memberId } = req.params;
+    // req.workspace is already loaded by checkWorkspaceMembership middleware
+    const currentUserId = req.userId;
+    const currentUserRole = req.workspaceRole;
+    const workspace = req.workspace;
+
+    // Find the membership to remove
+    const membership = await WorkspaceMember.findOne({
+      _id: memberId,
+      workspace: workspace._id,
+      deletedAt: null,
+    });
+
+    if (!membership) {
+      throw new AppError("Member not found", StatusCodes.NOT_FOUND);
+    }
+
+    // Cannot remove workspace owner
+    if (membership.role === WORKSPACE_ROLES.OWNER) {
+      throw new AppError(
+        "Cannot remove workspace owner",
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    // Prevent user from removing themselves (use leave endpoint instead)
+    if (membership.user.toString() === currentUserId) {
+      throw new AppError(
+        "Cannot remove yourself. Use leave endpoint instead",
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    // Admin can only remove members and viewers, not other admins (unless they're owner)
+    if (
+      currentUserRole === WORKSPACE_ROLES.ADMIN &&
+      membership.role === WORKSPACE_ROLES.ADMIN
+    ) {
+      throw new AppError(
+        "Only workspace owner can remove admins",
+        StatusCodes.FORBIDDEN,
+      );
+    }
+
+    // Soft delete the membership
+    membership.deletedAt = new Date();
+    await membership.save();
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Member removed successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Leave workspace (All members except owner)
+ */
+export const leaveWorkspace = async (req, res, next) => {
+  try {
+    // req.workspace is already loaded by checkWorkspaceMembership middleware
+    const workspace = req.workspace;
+    const userId = req.userId;
+    const userRole = req.workspaceRole;
+
+    // Owner cannot leave their own workspace
+    if (userRole === WORKSPACE_ROLES.OWNER) {
+      throw new AppError(
+        "Workspace owner cannot leave. Delete the workspace instead or transfer ownership first",
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    // Find user's membership
+    const membership = await WorkspaceMember.findOne({
+      workspace: workspace._id,
+      user: userId,
+      deletedAt: null,
+    });
+
+    if (!membership) {
+      throw new AppError(
+        "Membership not found",
+        StatusCodes.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    // Soft delete the membership
+    membership.deletedAt = new Date();
+    await membership.save();
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Successfully left the workspace",
     });
   } catch (error) {
     next(error);

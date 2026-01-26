@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import Workspace from "../models/workspaceModel.js";
-import WorkspaceMember from "../models/workspaceMemberSchema.js";
+import WorkspaceMember from "../models/workspaceMemberModel.js";
 import User from "../models/userModel.js";
 import AppError from "../utils/AppError.js";
 import { WORKSPACE_ROLES } from "../constants/index.js";

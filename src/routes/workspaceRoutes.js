@@ -6,10 +6,17 @@ import {
   getWorkspaceBySlug,
   updateWorkspace,
   deleteWorkspace,
+  inviteMember,
+  getWorkspaceMembers,
+  updateMemberRole,
+  removeMember,
+  leaveWorkspace,
 } from "../controllers/workspaceController.js";
 import {
   createWorkspaceValidation,
   updateWorkspaceValidation,
+  inviteMemberValidation,
+  updateMemberRoleValidation,
 } from "../validators/workspaceValidators.js";
 import auth from "../middlewares/auth.js";
 import {
@@ -448,5 +455,411 @@ router.delete(
   checkWorkspaceAdmin,
   deleteWorkspace,
 );
+
+/**
+ * @swagger
+ * /api/workspaces/{slug}/members/invite:
+ *   post:
+ *     summary: Invite a member to the workspace
+ *     tags: [Workspace Members]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workspace slug
+ *         example: my-workspace
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *                 description: Email of the user to invite
+ *               role:
+ *                 type: string
+ *                 enum: [admin, member, viewer]
+ *                 default: member
+ *                 example: member
+ *                 description: Role to assign (cannot be 'owner')
+ *     responses:
+ *       201:
+ *         description: Member invited successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Member invited successfully
+ *                 member:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: 60d5ec49f1b2c8b1f8e4e1a1
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         firstName:
+ *                           type: string
+ *                         lastName:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *                         profileImage:
+ *                           type: string
+ *                     role:
+ *                       type: string
+ *                       enum: [admin, member, viewer]
+ *                     invitedBy:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         firstName:
+ *                           type: string
+ *                         lastName:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *                     joinedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Validation error or cannot invite as owner
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized (requires owner or admin role)
+ *       404:
+ *         description: User with this email does not exist or workspace not found
+ *       409:
+ *         description: User is already a member of this workspace
+ */
+
+/**
+ * @route   POST /api/workspaces/:slug/members/invite
+ * @desc    Invite a member to the workspace
+ * @access  Private (Owner & Admin only)
+ */
+router.post(
+  "/:slug/members/invite",
+  auth,
+  checkWorkspaceMembership,
+  checkWorkspaceAdmin,
+  inviteMemberValidation,
+  inviteMember,
+);
+
+/**
+ * @swagger
+ * /api/workspaces/{slug}/members:
+ *   get:
+ *     summary: Get all members of a workspace
+ *     tags: [Workspace Members]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workspace slug
+ *         example: my-workspace
+ *     responses:
+ *       200:
+ *         description: List of workspace members
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   example: 5
+ *                 members:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           firstName:
+ *                             type: string
+ *                           lastName:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                           profileImage:
+ *                             type: string
+ *                       role:
+ *                         type: string
+ *                         enum: [owner, admin, member, viewer]
+ *                       invitedBy:
+ *                         type: object
+ *                         nullable: true
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           firstName:
+ *                             type: string
+ *                           lastName:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                       joinedAt:
+ *                         type: string
+ *                         format: date-time
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not a member of this workspace
+ *       404:
+ *         description: Workspace not found
+ */
+
+/**
+ * @route   GET /api/workspaces/:slug/members
+ * @desc    Get all members of a workspace
+ * @access  Private (All workspace members)
+ */
+router.get(
+  "/:slug/members",
+  auth,
+  checkWorkspaceMembership,
+  getWorkspaceMembers,
+);
+
+/**
+ * @swagger
+ * /api/workspaces/{slug}/members/{memberId}:
+ *   patch:
+ *     summary: Update member role
+ *     tags: [Workspace Members]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workspace slug
+ *         example: my-workspace
+ *       - in: path
+ *         name: memberId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Member ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - role
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [admin, member, viewer]
+ *                 example: admin
+ *                 description: New role for the member (cannot be 'owner')
+ *     responses:
+ *       200:
+ *         description: Member role updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Member role updated successfully
+ *                 member:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         firstName:
+ *                           type: string
+ *                         lastName:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *                         profileImage:
+ *                           type: string
+ *                     role:
+ *                       type: string
+ *                       enum: [admin, member, viewer]
+ *                     joinedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Cannot change owner role or update to owner role or change your own role
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized (requires owner or admin role) or admin cannot change other admin roles
+ *       404:
+ *         description: Member not found or workspace not found
+ */
+
+/**
+ * @route   PATCH /api/workspaces/:slug/members/:memberId
+ * @desc    Update member role
+ * @access  Private (Owner & Admin only)
+ */
+router.patch(
+  "/:slug/members/:memberId",
+  auth,
+  checkWorkspaceMembership,
+  checkWorkspaceAdmin,
+  updateMemberRoleValidation,
+  updateMemberRole,
+);
+
+/**
+ * @swagger
+ * /api/workspaces/{slug}/members/{memberId}:
+ *   delete:
+ *     summary: Remove member from workspace
+ *     tags: [Workspace Members]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workspace slug
+ *         example: my-workspace
+ *       - in: path
+ *         name: memberId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Member ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
+ *     responses:
+ *       200:
+ *         description: Member removed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Member removed successfully
+ *       400:
+ *         description: Cannot remove workspace owner or cannot remove yourself
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized (requires owner or admin role) or admin cannot remove other admins
+ *       404:
+ *         description: Member not found or workspace not found
+ */
+
+/**
+ * @route   DELETE /api/workspaces/:slug/members/:memberId
+ * @desc    Remove member from workspace
+ * @access  Private (Owner & Admin only)
+ */
+router.delete(
+  "/:slug/members/:memberId",
+  auth,
+  checkWorkspaceMembership,
+  checkWorkspaceAdmin,
+  removeMember,
+);
+
+/**
+ * @swagger
+ * /api/workspaces/{slug}/members/leave:
+ *   post:
+ *     summary: Leave workspace
+ *     tags: [Workspace Members]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workspace slug
+ *         example: my-workspace
+ *     responses:
+ *       200:
+ *         description: Successfully left the workspace
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Successfully left the workspace
+ *       400:
+ *         description: Workspace owner cannot leave
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not a member of this workspace
+ *       404:
+ *         description: Workspace not found
+ */
+
+/**
+ * @route   POST /api/workspaces/:slug/members/leave
+ * @desc    Leave workspace
+ * @access  Private (All members except owner)
+ */
+router.post("/:slug/members/leave", auth, checkWorkspaceMembership, leaveWorkspace);
 
 export default router;

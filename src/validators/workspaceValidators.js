@@ -1,5 +1,6 @@
 import { body } from "express-validator";
 import { validate } from "../middlewares/validate.js";
+import { WORKSPACE_ROLES } from "../constants/index.js";
 
 /**
  * Validation rules for workspace creation
@@ -63,6 +64,53 @@ export const updateWorkspaceValidation = [
     .optional()
     .isBoolean()
     .withMessage("allowMemberProjectCreation must be a boolean"),
+
+  validate,
+];
+
+/**
+ * Validation rules for inviting a member to workspace
+ */
+export const inviteMemberValidation = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Must be a valid email address")
+    .normalizeEmail(),
+
+  body("role")
+    .optional()
+    .trim()
+    .isIn([
+      WORKSPACE_ROLES.ADMIN,
+      WORKSPACE_ROLES.MEMBER,
+      WORKSPACE_ROLES.VIEWER,
+    ])
+    .withMessage(
+      "Role must be one of: admin, member, viewer (owner role cannot be assigned)",
+    ),
+
+  validate,
+];
+
+/**
+ * Validation rules for updating member role
+ */
+export const updateMemberRoleValidation = [
+  body("role")
+    .trim()
+    .notEmpty()
+    .withMessage("Role is required")
+    .isIn([
+      WORKSPACE_ROLES.ADMIN,
+      WORKSPACE_ROLES.MEMBER,
+      WORKSPACE_ROLES.VIEWER,
+    ])
+    .withMessage(
+      "Role must be one of: admin, member, viewer (owner role cannot be assigned)",
+    ),
 
   validate,
 ];
