@@ -3,7 +3,7 @@ import {
   createWorkspace,
   getAllWorkspaces,
   getMyWorkspaces,
-  getWorkspaceBySlug,
+  getWorkspaceById,
   updateWorkspace,
   deleteWorkspace,
   inviteMember,
@@ -218,7 +218,7 @@ router.get("/me", auth, getMyWorkspaces);
 
 /**
  * @swagger
- * /api/workspaces/{slug}:
+ * /api/workspaces/{workspaceId}:
  *   get:
  *     summary: Get workspace details by slug
  *     tags: [Workspaces]
@@ -226,12 +226,12 @@ router.get("/me", auth, getMyWorkspaces);
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: workspaceId
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace slug
- *         example: my-workspace
+ *         description: Workspace ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
  *     responses:
  *       200:
  *         description: Workspace details
@@ -299,15 +299,15 @@ router.get("/me", auth, getMyWorkspaces);
  */
 
 /**
- * @route   GET /api/workspaces/:slug
+ * @route   GET /api/workspaces/:workspaceId
  * @desc    Get workspace details by slug
  * @access  Private (Workspace members only)
  */
-router.get("/:slug", auth, checkWorkspaceMembership, getWorkspaceBySlug);
+router.get("/:workspaceId", auth, checkWorkspaceMembership, getWorkspaceById);
 
 /**
  * @swagger
- * /api/workspaces/{slug}:
+ * /api/workspaces/{workspaceId}:
  *   patch:
  *     summary: Update workspace details
  *     tags: [Workspaces]
@@ -315,12 +315,12 @@ router.get("/:slug", auth, checkWorkspaceMembership, getWorkspaceBySlug);
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: workspaceId
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace slug
- *         example: my-workspace
+ *         description: Workspace ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
  *     requestBody:
  *       required: true
  *       content:
@@ -392,12 +392,12 @@ router.get("/:slug", auth, checkWorkspaceMembership, getWorkspaceBySlug);
  */
 
 /**
- * @route   PATCH /api/workspaces/:slug
+ * @route   PATCH /api/workspaces/:workspaceId
  * @desc    Update workspace details
  * @access  Private (Owner & Admin only)
  */
 router.patch(
-  "/:slug",
+  "/:workspaceId",
   auth,
   checkWorkspaceMembership,
   checkWorkspaceAdmin,
@@ -407,7 +407,7 @@ router.patch(
 
 /**
  * @swagger
- * /api/workspaces/{slug}:
+ * /api/workspaces/{workspaceId}:
  *   delete:
  *     summary: Delete workspace (soft delete with cascading)
  *     tags: [Workspaces]
@@ -415,12 +415,12 @@ router.patch(
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: workspaceId
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace slug
- *         example: my-workspace
+ *         description: Workspace ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
  *     responses:
  *       200:
  *         description: Workspace deleted successfully
@@ -444,12 +444,12 @@ router.patch(
  */
 
 /**
- * @route   DELETE /api/workspaces/:slug
+ * @route   DELETE /api/workspaces/:workspaceId
  * @desc    Delete workspace (soft delete with cascading)
  * @access  Private (Owner & Admin only)
  */
 router.delete(
-  "/:slug",
+  "/:workspaceId",
   auth,
   checkWorkspaceMembership,
   checkWorkspaceAdmin,
@@ -458,7 +458,7 @@ router.delete(
 
 /**
  * @swagger
- * /api/workspaces/{slug}/members/invite:
+ * /api/workspaces/{workspaceId}/members/invite:
  *   post:
  *     summary: Invite a member to the workspace
  *     tags: [Workspace Members]
@@ -466,12 +466,12 @@ router.delete(
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: workspaceId
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace slug
- *         example: my-workspace
+ *         description: Workspace ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
  *     requestBody:
  *       required: true
  *       content:
@@ -555,12 +555,12 @@ router.delete(
  */
 
 /**
- * @route   POST /api/workspaces/:slug/members/invite
+ * @route   POST /api/workspaces/:workspaceId/members/invite
  * @desc    Invite a member to the workspace
  * @access  Private (Owner & Admin only)
  */
 router.post(
-  "/:slug/members/invite",
+  "/:workspaceId/members/invite",
   auth,
   checkWorkspaceMembership,
   checkWorkspaceAdmin,
@@ -570,7 +570,7 @@ router.post(
 
 /**
  * @swagger
- * /api/workspaces/{slug}/members:
+ * /api/workspaces/{workspaceId}/members:
  *   get:
  *     summary: Get all members of a workspace
  *     tags: [Workspace Members]
@@ -578,12 +578,12 @@ router.post(
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: workspaceId
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace slug
- *         example: my-workspace
+ *         description: Workspace ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
  *     responses:
  *       200:
  *         description: List of workspace members
@@ -645,12 +645,12 @@ router.post(
  */
 
 /**
- * @route   GET /api/workspaces/:slug/members
+ * @route   GET /api/workspaces/:workspaceId/members
  * @desc    Get all members of a workspace
  * @access  Private (All workspace members)
  */
 router.get(
-  "/:slug/members",
+  "/:workspaceId/members",
   auth,
   checkWorkspaceMembership,
   getWorkspaceMembers,
@@ -658,7 +658,7 @@ router.get(
 
 /**
  * @swagger
- * /api/workspaces/{slug}/members/{memberId}:
+ * /api/workspaces/{workspaceId}/members/{memberId}:
  *   patch:
  *     summary: Update member role
  *     tags: [Workspace Members]
@@ -666,12 +666,12 @@ router.get(
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: workspaceId
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace slug
- *         example: my-workspace
+ *         description: Workspace ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
  *       - in: path
  *         name: memberId
  *         required: true
@@ -742,12 +742,12 @@ router.get(
  */
 
 /**
- * @route   PATCH /api/workspaces/:slug/members/:memberId
+ * @route   PATCH /api/workspaces/:workspaceId/members/:memberId
  * @desc    Update member role
  * @access  Private (Owner & Admin only)
  */
 router.patch(
-  "/:slug/members/:memberId",
+  "/:workspaceId/members/:memberId",
   auth,
   checkWorkspaceMembership,
   checkWorkspaceAdmin,
@@ -757,7 +757,7 @@ router.patch(
 
 /**
  * @swagger
- * /api/workspaces/{slug}/members/{memberId}:
+ * /api/workspaces/{workspaceId}/members/{memberId}:
  *   delete:
  *     summary: Remove member from workspace
  *     tags: [Workspace Members]
@@ -765,12 +765,12 @@ router.patch(
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: workspaceId
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace slug
- *         example: my-workspace
+ *         description: Workspace ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
  *       - in: path
  *         name: memberId
  *         required: true
@@ -803,12 +803,12 @@ router.patch(
  */
 
 /**
- * @route   DELETE /api/workspaces/:slug/members/:memberId
+ * @route   DELETE /api/workspaces/:workspaceId/members/:memberId
  * @desc    Remove member from workspace
  * @access  Private (Owner & Admin only)
  */
 router.delete(
-  "/:slug/members/:memberId",
+  "/:workspaceId/members/:memberId",
   auth,
   checkWorkspaceMembership,
   checkWorkspaceAdmin,
@@ -817,7 +817,7 @@ router.delete(
 
 /**
  * @swagger
- * /api/workspaces/{slug}/members/leave:
+ * /api/workspaces/{workspaceId}/members/leave:
  *   post:
  *     summary: Leave workspace
  *     tags: [Workspace Members]
@@ -825,12 +825,12 @@ router.delete(
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: slug
+ *         name: workspaceId
  *         required: true
  *         schema:
  *           type: string
- *         description: Workspace slug
- *         example: my-workspace
+ *         description: Workspace ID
+ *         example: 60d5ec49f1b2c8b1f8e4e1a1
  *     responses:
  *       200:
  *         description: Successfully left the workspace
@@ -856,10 +856,10 @@ router.delete(
  */
 
 /**
- * @route   POST /api/workspaces/:slug/members/leave
+ * @route   POST /api/workspaces/:workspaceId/members/leave
  * @desc    Leave workspace
  * @access  Private (All members except owner)
  */
-router.post("/:slug/members/leave", auth, checkWorkspaceMembership, leaveWorkspace);
+router.post("/:workspaceId/members/leave", auth, checkWorkspaceMembership, leaveWorkspace);
 
 export default router;

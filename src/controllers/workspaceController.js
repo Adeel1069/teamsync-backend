@@ -152,9 +152,9 @@ export const getMyWorkspaces = async (req, res, next) => {
 };
 
 /**
- * Get workspace details by slug (Members only)
+ * Get workspace details by ID (Members only)
  */
-export const getWorkspaceBySlug = async (req, res, next) => {
+export const getWorkspaceById = async (req, res, next) => {
   try {
     // req.workspace is already loaded by checkWorkspaceMembership middleware
     // req.workspaceRole contains the user's role in the workspace

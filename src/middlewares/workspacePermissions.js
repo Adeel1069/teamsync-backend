@@ -36,17 +36,17 @@ export const checkSuperAdmin = async (req, res, next) => {
  */
 export const checkWorkspaceMembership = async (req, res, next) => {
   try {
-    const { slug } = req.params;
+    const { workspaceId } = req.params;
     const userId = req.userId;
 
-    // Check is slug is provided
-    if (!slug) {
-      throw new AppError("slug is required", StatusCodes.BAD_REQUEST);
+    // Check if workspaceId is provided
+    if (!workspaceId) {
+      throw new AppError("workspaceId is required", StatusCodes.BAD_REQUEST);
     }
 
-    // Find the workspace by slug
+    // Find the workspace by ID
     const workspace = await Workspace.findOne({
-      slug: slug,
+      _id: workspaceId,
       deletedAt: null,
     });
 
