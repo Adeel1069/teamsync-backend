@@ -3,7 +3,7 @@ import Workspace from "../models/workspaceModel.js";
 import WorkspaceMember from "../models/workspaceMemberModel.js";
 import Label from "../models/labelModel.js";
 import Project from "../models/projectModel.js";
-import Task from "../models/taskSchema.js";
+import Task from "../models/taskModel.js";
 import ActivityLog from "../models/activityLogModel.js";
 import Comment from "../models/commentModel.js";
 import Attachment from "../models/attachmentModel.js";

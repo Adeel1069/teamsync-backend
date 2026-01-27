@@ -27,19 +27,12 @@ const taskSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(TASK_STATUSES),
       default: TASK_STATUSES.TODO,
-      required: true,
     },
     priority: {
       type: String,
       enum: Object.values(TASK_PRIORITIES),
       default: TASK_PRIORITIES.MEDIUM,
       index: true,
-    },
-    // Parent task for subtask hierarchy
-    parent: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Task",
-      default: null,
     },
     // Reporter/Creator
     reporter: {

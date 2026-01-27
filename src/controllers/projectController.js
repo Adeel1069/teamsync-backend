@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import Project from "../models/projectModel.js";
-import Task from "../models/taskSchema.js";
+import Task from "../models/taskModel.js";
 import Comment from "../models/commentModel.js";
 import Attachment from "../models/attachmentModel.js";
 import AppError from "../utils/AppError.js";

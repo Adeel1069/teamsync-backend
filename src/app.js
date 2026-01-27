@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/authRoutes.js";
 import workspaceRoutes from "./routes/workspaceRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
 import { errorHandler } from "./middlewares/error.js";
 import { FRONTEND_URL, NODE_ENV } from "./config/envConfig.js";
 import { swaggerSpec, swaggerUi } from "./config/swagger.js";
@@ -60,6 +61,7 @@ app.get("/api-docs-json", (_req, res) => {
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/workspaces", projectRoutes);
+app.use("/api/workspaces", taskRoutes);
 
 // Health check
 app.get("/health", (req, res) => {
