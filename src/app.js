@@ -9,7 +9,9 @@ import workspaceRoutes from "./routes/workspaceRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import attachmentRoutes from "./routes/attachmentRoutes.js";
 import { errorHandler } from "./middlewares/error.js";
+import { handleMulterError } from "./middlewares/multerErrorHandler.js";
 import { FRONTEND_URL, NODE_ENV } from "./config/envConfig.js";
 import { swaggerSpec, swaggerUi } from "./config/swagger.js";
 import { StatusCodes } from "http-status-codes";
@@ -64,6 +66,8 @@ app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/workspaces", projectRoutes);
 app.use("/api/workspaces", taskRoutes);
 app.use("/api/workspaces", commentRoutes);
+app.use("/api/workspaces", attachmentRoutes);
+app.use("/api/attachments", attachmentRoutes);
 
 // Health check
 app.get("/health", (req, res) => {
@@ -81,6 +85,9 @@ app.use((req, res) => {
     message: "Route not found",
   });
 });
+
+// Multer error handler (must come before general error handler)
+app.use(handleMulterError);
 
 // Centralized error handler
 app.use(errorHandler);
