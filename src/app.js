@@ -11,6 +11,7 @@ import taskRoutes from "./routes/taskRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import attachmentRoutes from "./routes/attachmentRoutes.js";
 import { errorHandler } from "./middlewares/error.js";
+import logger from "./utils/logger.js";
 import { handleMulterError } from "./middlewares/multerErrorHandler.js";
 import { FRONTEND_URL, NODE_ENV } from "./config/envConfig.js";
 import { swaggerSpec, swaggerUi } from "./config/swagger.js";
@@ -39,7 +40,13 @@ app.use(cookieParser());
 // LOGGING (Development only)
 if (NODE_ENV === "development") {
   app.use((req, res, next) => {
-    console.info(`${req.method} ${req.url}`);
+    const start = Date.now();
+    res.on("finish", () => {
+      logger.debug("HTTP", `${req.method} ${req.url}`, {
+        status: res.statusCode,
+        duration: `${Date.now() - start}ms`,
+      });
+    });
     next();
   });
 }
