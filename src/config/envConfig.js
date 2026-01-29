@@ -9,3 +9,10 @@ export const JWT_EXPIRE = process.env.JWT_EXPIRE || "15m";
 export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 export const JWT_REFRESH_EXPIRE = process.env.JWT_REFRESH_EXPIRE || "7d";
 export const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+
+// Cron Job Configuration
+export const CRON_ENABLED = process.env.CRON_ENABLED || true; // Enabled by default
+export const CRON_SOFT_DELETE_AUDIT_SCHEDULE =
+  process.env.CRON_SOFT_DELETE_AUDIT_SCHEDULE || "0 2 * * *"; // Daily at 2:00 AM
+export const SOFT_DELETE_RETENTION_DAYS =
+  parseInt(process.env.SOFT_DELETE_RETENTION_DAYS, 10) || 30;
