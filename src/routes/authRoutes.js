@@ -1,5 +1,4 @@
 import express from "express";
-import rateLimit from "express-rate-limit";
 import {
   registerUser,
   loginUser,
@@ -18,17 +17,11 @@ import {
   resetPasswordValidation,
 } from "../validators/authValidators.js";
 import auth from "../middlewares/auth.js";
-
-// Rate limiter for forgot password (3 requests per hour per IP)
-const forgotPasswordLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3,
-  message: {
-    success: false,
-    message:
-      "Too many password reset requests. Please try again after an hour.",
-  },
-});
+import {
+  loginLimiter,
+  registerLimiter,
+  forgotPasswordLimiter,
+} from "../middlewares/rateLimiters.js";
 
 const router = express.Router();
 
@@ -78,7 +71,7 @@ const router = express.Router();
  * @desc    Register a new user and set authentication cookies
  * @access  Public
  */
-router.post("/register", registerValidation, registerUser);
+router.post("/register", registerLimiter, registerValidation, registerUser);
 
 /**
  * @swagger
@@ -116,7 +109,7 @@ router.post("/register", registerValidation, registerUser);
  * @desc    Authenticate user and set cookies
  * @access  Public
  */
-router.post("/login", loginValidation, loginUser);
+router.post("/login", loginLimiter, loginValidation, loginUser);
 
 /**
  * @swagger

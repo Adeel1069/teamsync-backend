@@ -2,7 +2,6 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
 
 import authRoutes from "./routes/authRoutes.js";
 import workspaceRoutes from "./routes/workspaceRoutes.js";
@@ -52,16 +51,6 @@ if (NODE_ENV === "development") {
   });
 }
 
-// Rate limiting
-const authLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 15 minutes
-  max: 50, // requests per window
-  message: {
-    success: false,
-    message: "Too many login attempts, please try again later",
-  },
-});
-
 // Swagger docs route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -72,7 +61,7 @@ app.get("/api-docs-json", (_req, res) => {
 });
 
 // Routes
-app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/workspaces", projectRoutes);
 app.use("/api/workspaces", taskRoutes);
