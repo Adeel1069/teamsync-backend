@@ -133,18 +133,6 @@ export const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.userId).select("+isSuperAdmin");
 
-    if (!user) {
-      throw new AppError("User not found", StatusCodes.NOT_FOUND);
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      throw new AppError(
-        "Your account has been deactivated",
-        StatusCodes.FORBIDDEN,
-      );
-    }
-
     // Send response
     res.status(StatusCodes.OK).json({
       success: true,
@@ -250,21 +238,8 @@ export const logout = async (req, res, next) => {
 export const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const userId = req.userId;
 
-    const user = await User.findById(userId).select("+password");
-
-    if (!user) {
-      throw new AppError("User not found", StatusCodes.NOT_FOUND);
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      throw new AppError(
-        "Your account has been deactivated",
-        StatusCodes.FORBIDDEN,
-      );
-    }
+    const user = await User.findById(req.userId).select("+password");
 
     // Verify current password
     const isMatch = await user.matchPassword(currentPassword);
