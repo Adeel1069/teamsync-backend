@@ -13,6 +13,7 @@ import {
   WORKSPACE_ROLES,
   DEFAULT_WORKSPACE_LABELS,
 } from "../constants/index.js";
+import { sendWorkspaceCreatedEmail } from "../utils/sendEmail.js";
 
 /**
  * Create a new workspace
@@ -22,6 +23,13 @@ export const createWorkspace = async (req, res, next) => {
   const userId = req.userId;
 
   try {
+    // Check if this is the user's first workspace
+    const existingMemberships = await WorkspaceMember.countDocuments({
+      user: userId,
+      deletedAt: null,
+    });
+    const isFirstWorkspace = existingMemberships === 0;
+
     const workspaceData = {
       name,
       description,
@@ -57,6 +65,14 @@ export const createWorkspace = async (req, res, next) => {
     }));
 
     await Label.insertMany(defaultLabels);
+
+    // Send first workspace created email notification (non-blocking)
+    if (isFirstWorkspace) {
+      const user = await User.findById(userId).select("email firstName");
+      if (user) {
+        sendWorkspaceCreatedEmail(user.email, user.firstName, workspace.name);
+      }
+    }
 
     // Send response
     res.status(StatusCodes.CREATED).json({

@@ -12,7 +12,11 @@ import {
   getAccessTokenCookieOptions,
   getRefreshTokenCookieOptions,
 } from "../config/cookieConfig.js";
-import { sendPasswordResetOtp } from "../utils/sendEmail.js";
+import {
+  sendPasswordResetOtp,
+  sendWelcomeEmail,
+  sendPasswordChangedEmail,
+} from "../utils/sendEmail.js";
 import { OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS } from "../config/envConfig.js";
 
 /**
@@ -42,10 +46,14 @@ export const registerUser = async (req, res, next) => {
 
     await user.save();
 
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail(user.email, user.firstName);
+
     // Generate tokens
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
+    // TODO: Consider adding email verification step first before activating account
     // Set cookies
     res.cookie("accessToken", accessToken, getAccessTokenCookieOptions());
     res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
@@ -272,6 +280,9 @@ export const changePassword = async (req, res, next) => {
     user.password = newPassword;
     await user.save();
 
+    // Send password changed emails notification (non-blocking)
+    sendPasswordChangedEmail(user.email, user.firstName);
+
     // Clear cookies to force re-login
     res.clearCookie("accessToken", { path: "/" });
     res.clearCookie("refreshToken", { path: "/api/auth/refresh" });
@@ -321,7 +332,7 @@ export const forgotPassword = async (req, res, next) => {
 
     await passwordReset.save();
 
-    // Send OTP email
+    // Send OTP email (blocking)
     await sendPasswordResetOtp(user.email, otp, user.firstName);
 
     // Send response
@@ -393,6 +404,9 @@ export const resetPassword = async (req, res, next) => {
     // Update user password
     user.password = newPassword;
     await user.save();
+
+    // Send password changed email notification (non-blocking)
+    sendPasswordChangedEmail(user.email, user.firstName);
 
     // Delete all password reset records for this user
     await PasswordReset.deleteMany({ userId: user._id });
