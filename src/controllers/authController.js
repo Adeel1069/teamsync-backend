@@ -1,5 +1,7 @@
+import crypto from "crypto";
 import { StatusCodes } from "http-status-codes";
 import User from "../models/userModel.js";
+import PasswordReset from "../models/passwordResetModel.js";
 import AppError from "../utils/AppError.js";
 import {
   generateAccessToken,
@@ -10,6 +12,8 @@ import {
   getAccessTokenCookieOptions,
   getRefreshTokenCookieOptions,
 } from "../config/cookieConfig.js";
+import { sendPasswordResetOtp } from "../utils/sendEmail.js";
+import { OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS } from "../config/envConfig.js";
 
 /**
  * Register a new user
@@ -276,6 +280,128 @@ export const changePassword = async (req, res, next) => {
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Password changed successfully. Please login again.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Forgot password - send OTP to email
+ */
+export const forgotPassword = async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    // Find user by email (don't reveal if email exists)
+    const user = await User.findOne({ email, deletedAt: null });
+
+    // Always return success message (security: don't reveal if email exists)
+    const successMessage = "Password reset OTP has been sent.";
+
+    if (!user || !user.isActive) {
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        message: successMessage,
+      });
+    }
+
+    // Delete any existing password reset records for this user
+    await PasswordReset.deleteMany({ userId: user._id });
+
+    // Generate 6-digit OTP using crypto
+    const otp = crypto.randomInt(100000, 999999).toString();
+
+    // Create password reset record
+    const passwordReset = new PasswordReset({
+      userId: user._id,
+      otp,
+      expiresAt: new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000),
+    });
+
+    await passwordReset.save();
+
+    // Send OTP email
+    await sendPasswordResetOtp(user.email, otp, user.firstName);
+
+    // Send response
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: successMessage,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Reset password using OTP
+ */
+export const resetPassword = async (req, res, next) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    // Find user by email
+    const user = await User.findOne({ email, deletedAt: null });
+
+    if (!user) {
+      throw new AppError("Invalid email", StatusCodes.BAD_REQUEST);
+    }
+
+    // Find valid password reset record
+    const passwordReset = await PasswordReset.findOne({
+      userId: user._id,
+      isUsed: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!passwordReset) {
+      throw new AppError(
+        "Invalid or expired OTP. Please request a new one.",
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    // Check max attempts
+    if (passwordReset.attempts >= OTP_MAX_ATTEMPTS) {
+      await PasswordReset.deleteOne({ _id: passwordReset._id });
+      throw new AppError(
+        "Too many failed attempts. Please request a new OTP.",
+        StatusCodes.TOO_MANY_REQUESTS,
+      );
+    }
+
+    // Verify OTP
+    const isOtpValid = await passwordReset.matchOtp(otp);
+
+    if (!isOtpValid) {
+      // Increment attempts
+      passwordReset.attempts += 1;
+      await passwordReset.save();
+
+      const remainingAttempts = OTP_MAX_ATTEMPTS - passwordReset.attempts;
+      throw new AppError(
+        `Invalid OTP. ${remainingAttempts} attempt(s) remaining.`,
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+
+    // Mark OTP as used
+    passwordReset.isUsed = true;
+    await passwordReset.save();
+
+    // Update user password
+    user.password = newPassword;
+    await user.save();
+
+    // Delete all password reset records for this user
+    await PasswordReset.deleteMany({ userId: user._id });
+
+    // Send response
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message:
+        "Password reset successfully. Please login with your new password.",
     });
   } catch (error) {
     next(error);

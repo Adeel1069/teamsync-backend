@@ -56,7 +56,10 @@ if (NODE_ENV === "development") {
 const authLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 15 minutes
   max: 50, // requests per window
-  message: "Too many login attempts, please try again later",
+  message: {
+    success: false,
+    message: "Too many login attempts, please try again later",
+  },
 });
 
 // Swagger docs route

@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import AppError from "../utils/AppError.js";
 import { verifyAccessToken } from "../utils/generateToken.js";
+import User from "../models/userModel.js";
 
 const auth = async (req, res, next) => {
   try {
@@ -18,7 +19,22 @@ const auth = async (req, res, next) => {
     // 2. Verify token & Decode
     const decoded = verifyAccessToken(token);
 
-    // 3. Attach user info to request
+    // 3. Check if user still exists and is active
+    // TODO: Remove isActive check if we manually checking in controller
+    const user = await User.findById(decoded.userId).select("isActive");
+
+    if (!user) {
+      throw new AppError("User no longer exists", StatusCodes.UNAUTHORIZED);
+    }
+
+    if (!user.isActive) {
+      throw new AppError(
+        "Your account has been deactivated",
+        StatusCodes.FORBIDDEN,
+      );
+    }
+
+    // 4. Attach user info to request
     req.user = decoded;
     req.userId = decoded.userId;
 

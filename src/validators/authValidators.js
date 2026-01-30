@@ -82,11 +82,71 @@ export const changePasswordValidation = [
       "New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#)",
     )
     .custom((value, { req }) => {
+      // TODO: Implement the same logic as in reset password to prevent reusing recent passwords
       if (value === req.body.currentPassword) {
         throw new Error("New password must be different from current password");
       }
       return true;
     }),
+
+  body("confirmPassword")
+    .notEmpty()
+    .withMessage("Confirm password is required")
+    .custom((value, { req }) => {
+      if (value !== req.body.newPassword) {
+        throw new Error("Passwords do not match");
+      }
+      return true;
+    }),
+
+  validate,
+];
+
+/**
+ * Validation rules for forgot password
+ */
+export const forgotPasswordValidation = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  validate,
+];
+
+/**
+ * Validation rules for reset password
+ */
+export const resetPasswordValidation = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  body("otp")
+    .trim()
+    .notEmpty()
+    .withMessage("OTP is required")
+    .isLength({ min: 6, max: 6 })
+    .withMessage("OTP must be 6 digits")
+    .isNumeric()
+    .withMessage("OTP must contain only numbers"),
+
+  body("newPassword")
+    .notEmpty()
+    .withMessage("New password is required")
+    .isLength({ min: 8, max: 128 })
+    .withMessage("New password must be between 8 and 128 characters")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])/)
+    .withMessage(
+      "New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#)",
+    ),
 
   body("confirmPassword")
     .notEmpty()

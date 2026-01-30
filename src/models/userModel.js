@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
     isSuperAdmin: { type: Boolean, default: false, select: false },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date, default: null },
+    passwordChangedAt: { type: Date, default: null },
     //Soft delete
     deletedAt: {
       type: Date,
@@ -44,6 +45,10 @@ userSchema.index({ email: 1, deletedAt: 1 });
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
+  // Track password change time for token invalidation
+  if (!this.isNew) {
+    this.passwordChangedAt = new Date();
+  }
 });
 
 // Method to compare password during login

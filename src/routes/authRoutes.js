@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import {
   registerUser,
   loginUser,
@@ -6,13 +7,28 @@ import {
   refreshAccessToken,
   logout,
   changePassword,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/authController.js";
 import {
   registerValidation,
   loginValidation,
   changePasswordValidation,
+  forgotPasswordValidation,
+  resetPasswordValidation,
 } from "../validators/authValidators.js";
 import auth from "../middlewares/auth.js";
+
+// Rate limiter for forgot password (3 requests per hour per IP)
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3,
+  message: {
+    success: false,
+    message:
+      "Too many password reset requests. Please try again after an hour.",
+  },
+});
 
 const router = express.Router();
 
@@ -121,6 +137,89 @@ router.post("/login", loginValidation, loginUser);
  * @access  Public (uses refresh token from cookie)
  */
 router.post("/refresh", refreshAccessToken);
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Request password reset OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: john.doe@example.com
+ *     responses:
+ *       200:
+ *         description: OTP sent if email exists
+ *       429:
+ *         description: Too many requests
+ */
+
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Send password reset OTP to user's email
+ * @access  Public (rate limited)
+ */
+router.post(
+  "/forgot-password",
+  forgotPasswordLimiter,
+  forgotPasswordValidation,
+  forgotPassword,
+);
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset password using OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: john.doe@example.com
+ *               otp:
+ *                 type: string
+ *                 example: "123456"
+ *               newPassword:
+ *                 type: string
+ *                 example: NewPass456!@#
+ *               confirmPassword:
+ *                 type: string
+ *                 example: NewPass456!@#
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ *       429:
+ *         description: Too many failed attempts
+ */
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Reset password using OTP
+ * @access  Public
+ */
+router.post("/reset-password", resetPasswordValidation, resetPassword);
 
 // ==========================================
 // PROTECTED ROUTES
