@@ -860,6 +860,11 @@ router.delete(
  * @desc    Leave workspace
  * @access  Private (All members except owner)
  */
-router.post("/:workspaceId/members/leave", auth, checkWorkspaceMembership, leaveWorkspace);
+router.post(
+  "/:workspaceId/members/leave",
+  auth,
+  checkWorkspaceMembership,
+  leaveWorkspace,
+);
 
 export default router;

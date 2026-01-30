@@ -1,5 +1,6 @@
 // TODO: Remove this file as it is not needed anymore
 import { StatusCodes } from "http-status-codes";
+import AppError from "../utils/AppError.js";
 
 export const authorize = (...roles) => {
   return (req, res, next) => {

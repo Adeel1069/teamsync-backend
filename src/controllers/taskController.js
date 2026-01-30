@@ -321,8 +321,9 @@ export const updateTask = async (req, res, next) => {
     if (priority !== undefined) task.priority = priority;
     if (assignees !== undefined) task.assignees = assignees;
     if (dueDate !== undefined) task.dueDate = dueDate || null;
-    if (estimatedHours !== undefined)
+    if (estimatedHours !== undefined) {
       task.estimatedHours = estimatedHours || null;
+    }
     if (order !== undefined) task.order = order;
 
     await task.save();

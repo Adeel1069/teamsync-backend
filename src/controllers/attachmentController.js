@@ -174,7 +174,6 @@ export const getTaskAttachments = async (req, res, next) => {
 export const deleteTaskAttachment = async (req, res, next) => {
   try {
     const { projectId, taskId, attachmentId } = req.params;
-    const userId = req.userId;
 
     // Verify project exists and belongs to workspace
     const project = await Project.findOne({
@@ -232,7 +231,6 @@ export const deleteTaskAttachment = async (req, res, next) => {
 export const downloadFile = async (req, res, next) => {
   try {
     const { filename } = req.params;
-    const userId = req.userId;
 
     // Security: prevent directory traversal attacks
     const safeFilename = path.basename(filename);
@@ -241,7 +239,7 @@ export const downloadFile = async (req, res, next) => {
     // Check if file exists
     try {
       await fs.access(filePath);
-    } catch (error) {
+    } catch {
       throw new AppError("File not found", StatusCodes.NOT_FOUND);
     }
 

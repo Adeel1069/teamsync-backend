@@ -1,4 +1,5 @@
 import transporter, { emailFrom } from "../config/emailConfig.js";
+import logger from "./logger.js";
 
 /**
  * Send an email

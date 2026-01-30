@@ -8,7 +8,7 @@
 import { StatusCodes } from "http-status-codes";
 import { NODE_ENV } from "../config/envConfig.js";
 
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, _next) => {
   const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
 
   const response = {

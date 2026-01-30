@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+
+# Uploads and logs
+uploads/
+logs/
+
+# Package lock files
+package-lock.json
+
+# Other
+*.md

@@ -1,8 +1,5 @@
 import mongoose from "mongoose";
-import {
-  ACTIVITY_ENTITY_TYPES,
-  ACTIVITY_ACTIONS,
-} from "../constants/index.js";
+import { ACTIVITY_ENTITY_TYPES, ACTIVITY_ACTIONS } from "../constants/index.js";
 
 const activityLogSchema = new mongoose.Schema(
   {
