@@ -38,6 +38,7 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
 
 // LOGGING (Development only)
+// TODO: Replace this custom logger the morgan  package
 if (NODE_ENV === "development") {
   app.use((req, res, next) => {
     const start = Date.now();
@@ -54,7 +55,7 @@ if (NODE_ENV === "development") {
 // Rate limiting
 const authLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 15 minutes
-  max: 5, // requests per window
+  max: 50, // requests per window
   message: "Too many login attempts, please try again later",
 });
 

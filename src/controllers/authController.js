@@ -22,7 +22,10 @@ export const registerUser = async (req, res, next) => {
     const existingUser = await User.findOne({ email, deletedAt: null });
 
     if (existingUser) {
-      throw new AppError("User with this email already exists", StatusCodes.BAD_REQUEST);
+      throw new AppError(
+        "User with this email already exists",
+        StatusCodes.BAD_REQUEST,
+      );
     }
 
     // Create new user
@@ -77,7 +80,10 @@ export const loginUser = async (req, res, next) => {
 
     // Check if user is active
     if (!user.isActive) {
-      throw new AppError("Your account has been deactivated", StatusCodes.FORBIDDEN);
+      throw new AppError(
+        "Your account has been deactivated",
+        StatusCodes.FORBIDDEN,
+      );
     }
 
     // Update last login timestamp
@@ -121,7 +127,10 @@ export const getCurrentUser = async (req, res, next) => {
 
     // Check if user is active
     if (!user.isActive) {
-      throw new AppError("Your account has been deactivated", StatusCodes.FORBIDDEN);
+      throw new AppError(
+        "Your account has been deactivated",
+        StatusCodes.FORBIDDEN,
+      );
     }
 
     // Send response
@@ -167,7 +176,10 @@ export const refreshAccessToken = async (req, res, next) => {
 
     // Check if user is active
     if (!user.isActive) {
-      throw new AppError("Your account has been deactivated", StatusCodes.FORBIDDEN);
+      throw new AppError(
+        "Your account has been deactivated",
+        StatusCodes.FORBIDDEN,
+      );
     }
 
     // Generate new tokens (rotate both for security)
@@ -185,11 +197,16 @@ export const refreshAccessToken = async (req, res, next) => {
     });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return next(new AppError("Invalid refresh token", StatusCodes.UNAUTHORIZED));
+      return next(
+        new AppError("Invalid refresh token", StatusCodes.UNAUTHORIZED),
+      );
     }
     if (error.name === "TokenExpiredError") {
       return next(
-        new AppError("Refresh token expired. Please login again", StatusCodes.UNAUTHORIZED),
+        new AppError(
+          "Refresh token expired. Please login again",
+          StatusCodes.UNAUTHORIZED,
+        ),
       );
     }
     next(error);
@@ -209,6 +226,56 @@ export const logout = async (req, res, next) => {
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Logout successful",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Change user password
+ */
+export const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.userId;
+
+    const user = await User.findById(userId).select("+password");
+
+    if (!user) {
+      throw new AppError("User not found", StatusCodes.NOT_FOUND);
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      throw new AppError(
+        "Your account has been deactivated",
+        StatusCodes.FORBIDDEN,
+      );
+    }
+
+    // Verify current password
+    const isMatch = await user.matchPassword(currentPassword);
+
+    if (!isMatch) {
+      throw new AppError(
+        "Current password is incorrect",
+        StatusCodes.UNAUTHORIZED,
+      );
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    // Clear cookies to force re-login
+    res.clearCookie("accessToken", { path: "/" });
+    res.clearCookie("refreshToken", { path: "/api/auth/refresh" });
+
+    // Send response
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Password changed successfully. Please login again.",
     });
   } catch (error) {
     next(error);

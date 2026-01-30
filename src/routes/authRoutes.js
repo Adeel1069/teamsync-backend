@@ -5,10 +5,12 @@ import {
   getCurrentUser,
   refreshAccessToken,
   logout,
+  changePassword,
 } from "../controllers/authController.js";
 import {
   registerValidation,
   loginValidation,
+  changePasswordValidation,
 } from "../validators/authValidators.js";
 import auth from "../middlewares/auth.js";
 
@@ -169,5 +171,51 @@ router.post("/logout", auth, logout);
  * @access  Private
  */
 router.get("/me", auth, getCurrentUser);
+
+/**
+ * @swagger
+ * /api/auth/change-password:
+ *   post:
+ *     summary: Change user password
+ *     tags: [Auth]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 example: OldPass123!@#
+ *               newPassword:
+ *                 type: string
+ *                 example: NewPass456!@#
+ *               confirmPassword:
+ *                 type: string
+ *                 example: NewPass456!@#
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Current password is incorrect or not authenticated
+ *       403:
+ *         description: Account deactivated
+ */
+
+/**
+ * @route   POST /api/auth/change-password
+ * @desc    Change password for authenticated user
+ * @access  Private (authenticated users only)
+ */
+router.post("/change-password", auth, changePasswordValidation, changePassword);
 
 export default router;
